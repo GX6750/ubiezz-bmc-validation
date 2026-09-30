@@ -1,0 +1,828 @@
+<title>UBIEZZ BMC Validation</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap">
+
+<style>
+/* ─── Design tokens ─────────────────────────────────────────────
+   Layout : sticky header, max-width content wrapper, card grid
+   Colors : warm amber palette rooted in cassava/ubi identity
+   Type   : Outfit (display, numerics) + DM Sans (body, labels)
+──────────────────────────────────────────────────────────────── */
+:root {
+  --bg:        #FDFAF5;
+  --surface:   #FFFFFF;
+  --surface2:  #FFF7EA;
+  --border:    #EDE2CC;
+  --fg:        #1C1208;
+  --fg2:       #7A6040;
+  --amber:     #E8940A;
+  --amber2:    #D4820A;
+  --amber-bg:  #FEF3C7;
+  --green:     #059669;
+  --green-bg:  #D1FAE5;
+  --warn:      #B45309;
+  --warn-bg:   #FEF3C7;
+  --grid:      #F3EAD8;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:       #171208;
+    --surface:  #231A0C;
+    --surface2: #2C2010;
+    --border:   #3D2E14;
+    --fg:       #F5EDDA;
+    --fg2:      #9E7E4E;
+    --amber:    #FBBF24;
+    --amber2:   #F59E0B;
+    --amber-bg: #3D2800;
+    --green:    #34D399;
+    --green-bg: #064E3B;
+    --warn:     #FCD34D;
+    --warn-bg:  #451A03;
+    --grid:     #2C2010;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:       #171208;
+  --surface:  #231A0C;
+  --surface2: #2C2010;
+  --border:   #3D2E14;
+  --fg:       #F5EDDA;
+  --fg2:      #9E7E4E;
+  --amber:    #FBBF24;
+  --amber2:   #F59E0B;
+  --amber-bg: #3D2800;
+  --green:    #34D399;
+  --green-bg: #064E3B;
+  --warn:     #FCD34D;
+  --warn-bg:  #451A03;
+  --grid:     #2C2010;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+  padding-inline: 0;
+}
+
+/* ─── Header ──────────────────────────────────────────────────── */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 20px;
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 20;
+}
+.header-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.wordmark {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: -0.5px;
+  color: var(--amber);
+  line-height: 1;
+}
+.wordmark-sub {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--fg2);
+  margin-top: 1px;
+}
+.header-badges {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.chip {
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: var(--amber-bg);
+  color: var(--amber2);
+}
+.chip.green {
+  background: var(--green-bg);
+  color: var(--green);
+}
+
+/* ─── Wrapper ─────────────────────────────────────────────────── */
+.wrap {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 28px 20px;
+  padding-bottom: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ─── Section label ───────────────────────────────────────────── */
+.sec-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg2);
+  margin-bottom: 10px;
+}
+
+/* ─── KPI tiles ───────────────────────────────────────────────── */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+.kpi {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 20px;
+}
+.kpi-num {
+  font-family: 'Outfit', sans-serif;
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--amber);
+  font-variant-numeric: tabular-nums;
+}
+.kpi-desc {
+  font-size: 12px;
+  color: var(--fg2);
+  margin-top: 5px;
+  line-height: 1.4;
+}
+
+/* ─── Card ────────────────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 22px 24px;
+}
+.card-head {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 14.5px;
+  margin: 0 0 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-head::before {
+  content: '';
+  display: block;
+  width: 3px;
+  height: 16px;
+  background: var(--amber);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* ─── Grids ───────────────────────────────────────────────────── */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.g3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+@media (max-width: 660px) { .g2 { grid-template-columns: 1fr; } }
+@media (max-width: 680px) { .g3 { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 440px) { .g3 { grid-template-columns: 1fr; } }
+
+/* ─── BMC score tiles ─────────────────────────────────────────── */
+.bmc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(152px, 1fr)); gap: 12px; }
+.bmc-tile {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+}
+.bmc-score {
+  font-family: 'Outfit', sans-serif;
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--amber);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.bmc-label {
+  font-size: 11.5px;
+  color: var(--fg2);
+  margin-top: 4px;
+  line-height: 1.4;
+  font-weight: 500;
+}
+.bmc-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 99px;
+}
+.bmc-rating.great { background: var(--green-bg); color: var(--green); }
+.bmc-rating.good  { background: var(--amber-bg); color: var(--amber2); }
+.bmc-rating.fair  { background: var(--warn-bg);  color: var(--warn); }
+
+/* ─── Horizontal bar (CSS) ────────────────────────────────────── */
+.hbars { display: flex; flex-direction: column; gap: 11px; }
+.hbar {
+  display: grid;
+  grid-template-columns: 150px 1fr 38px;
+  align-items: center;
+  gap: 10px;
+}
+@media (max-width: 500px) {
+  .hbar { grid-template-columns: 110px 1fr 36px; }
+}
+.hbar-lbl {
+  font-size: 12px;
+  color: var(--fg2);
+  text-align: right;
+  line-height: 1.3;
+}
+.hbar-track {
+  height: 8px;
+  background: var(--surface2);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.hbar-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: var(--amber);
+}
+.hbar-val {
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+}
+
+/* ─── Donut charts (via Canvas + legend) ─────────────────────── */
+.donut-wrap {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.donut-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  flex: 1;
+  min-width: 0;
+}
+.leg-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  min-width: 0;
+}
+.leg-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.leg-name { color: var(--fg2); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.leg-pct { font-family: 'Outfit', sans-serif; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* ─── Insight callout ─────────────────────────────────────────── */
+.insight {
+  border-left: 3px solid var(--amber);
+  background: var(--amber-bg);
+  border-radius: 0 8px 8px 0;
+  padding: 11px 14px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  margin-top: 16px;
+}
+.insight strong { font-family: 'Outfit', sans-serif; font-weight: 600; }
+
+/* ─── Footer note ─────────────────────────────────────────────── */
+.footnote {
+  font-size: 11px;
+  color: var(--fg2);
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  line-height: 1.5;
+}
+
+/* ─── Conclusion panel ────────────────────────────────────────── */
+.concl-body {
+  font-size: 13px;
+  line-height: 1.75;
+  max-width: 70ch;
+  margin: 0 0 20px;
+  color: var(--fg);
+}
+
+/* footer */
+.footer {
+  border-top: 1px solid var(--border);
+  padding: 16px 20px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--fg2);
+}
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+<!-- ── HEADER ─────────────────────────────────────────────────── -->
+<div class="header">
+  <div class="header-inner">
+    <div>
+      <div class="wordmark">UBIEZZ</div>
+      <div class="wordmark-sub">Laporan Validasi Business Model Canvas</div>
+    </div>
+    <div class="header-badges">
+      <span class="chip">57 Responden</span>
+      <span class="chip">Skala Likert 1–5</span>
+      <span class="chip green">Rata-rata 4.28 ✓</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── MAIN CONTENT ─────────────────────────────────────────────── -->
+<div class="wrap">
+
+  <!-- 1. KPI summary -->
+  <section>
+    <div class="sec-label">Ringkasan Survei</div>
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="kpi-num">57</div>
+        <div class="kpi-desc">Total Responden</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-num">4.28</div>
+        <div class="kpi-desc">Rata-rata skor BMC keseluruhan (skala 1–5)</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-num">4.63</div>
+        <div class="kpi-desc">Tertinggi — Customer Relationships</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-num">3.77</div>
+        <div class="kpi-desc">Terendah — Customer Segments</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. BMC element tiles -->
+  <section>
+    <div class="sec-label">Skor Per Elemen BMC</div>
+    <div class="card">
+      <div class="card-head">Rata-rata Validasi 6 Elemen BMC</div>
+      <div class="bmc-grid">
+        <div class="bmc-tile">
+          <div class="bmc-score">3.77</div>
+          <div class="bmc-label">Customer Segments</div>
+          <div class="bmc-rating fair">Cukup Baik</div>
+        </div>
+        <div class="bmc-tile">
+          <div class="bmc-score">4.29</div>
+          <div class="bmc-label">Value Propositions</div>
+          <div class="bmc-rating good">Baik</div>
+        </div>
+        <div class="bmc-tile">
+          <div class="bmc-score">4.51</div>
+          <div class="bmc-label">Channels</div>
+          <div class="bmc-rating great">Sangat Baik</div>
+        </div>
+        <div class="bmc-tile">
+          <div class="bmc-score">4.63</div>
+          <div class="bmc-label">Customer Relationships</div>
+          <div class="bmc-rating great">Sangat Baik</div>
+        </div>
+        <div class="bmc-tile">
+          <div class="bmc-score">4.04</div>
+          <div class="bmc-label">Revenue Streams</div>
+          <div class="bmc-rating good">Baik</div>
+        </div>
+        <div class="bmc-tile">
+          <div class="bmc-score">4.53</div>
+          <div class="bmc-label">Key Resources</div>
+          <div class="bmc-rating great">Sangat Baik</div>
+        </div>
+      </div>
+      <div class="footnote">Threshold: Sangat Baik ≥ 4.50 · Baik 4.00–4.49 · Cukup Baik 3.50–3.99 · Perlu Perbaikan &lt; 3.50</div>
+    </div>
+  </section>
+
+  <!-- 3. Per-question chart -->
+  <section>
+    <div class="card">
+      <div class="card-head">Skor Rata-rata Per Pertanyaan Likert (9 Item)</div>
+      <div style="position:relative;height:240px">
+        <canvas id="qChart"></canvas>
+      </div>
+      <div class="footnote">
+        Q1 Customer Segments · Q2–Q3 Value Propositions · Q4 Channels · Q5 Customer Relationships · Q6–Q7 Revenue Streams · Q8–Q9 Key Resources
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Demographics row -->
+  <section>
+    <div class="sec-label">Profil Responden</div>
+    <div class="g2">
+
+      <!-- Gender donut -->
+      <div class="card">
+        <div class="card-head">Jenis Kelamin</div>
+        <div class="donut-wrap">
+          <canvas id="genderChart" width="110" height="110" style="max-width:110px;flex-shrink:0"></canvas>
+          <div class="donut-legend">
+            <div class="leg-row">
+              <div class="leg-dot" style="background:#E8940A"></div>
+              <span class="leg-name">Perempuan</span>
+              <span class="leg-pct">63% (36)</span>
+            </div>
+            <div class="leg-row">
+              <div class="leg-dot" style="background:#7A3E0A"></div>
+              <span class="leg-name">Laki-laki</span>
+              <span class="leg-pct">37% (21)</span>
+            </div>
+            <div style="margin-top:10px;font-size:11.5px;color:var(--fg2);line-height:1.5">
+              Mayoritas berstatus <strong style="color:var(--fg)">Mahasiswa</strong>, sesuai target pasar area kampus UBIEZZ.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Online ordering -->
+      <div class="card">
+        <div class="card-head">Frekuensi Order Online</div>
+        <div class="hbars">
+          <div class="hbar">
+            <div class="hbar-lbl">1–3× seminggu</div>
+            <div class="hbar-track"><div class="hbar-fill" style="width:100%"></div></div>
+            <div class="hbar-val">23</div>
+          </div>
+          <div class="hbar">
+            <div class="hbar-lbl">1–3× sebulan</div>
+            <div class="hbar-track"><div class="hbar-fill" style="width:70%"></div></div>
+            <div class="hbar-val">16</div>
+          </div>
+          <div class="hbar">
+            <div class="hbar-lbl">&gt;3× seminggu</div>
+            <div class="hbar-track"><div class="hbar-fill" style="width:48%"></div></div>
+            <div class="hbar-val">11</div>
+          </div>
+          <div class="hbar">
+            <div class="hbar-lbl">Jarang / Tidak pernah</div>
+            <div class="hbar-track"><div class="hbar-fill" style="width:30%"></div></div>
+            <div class="hbar-val">7</div>
+          </div>
+        </div>
+        <div class="insight">
+          <strong>Insight:</strong> 60% responden order online ≥ 1× seminggu — saluran digital sangat relevan untuk strategi distribusi UBIEZZ.
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 5. Budget + preferences row -->
+  <section>
+    <div class="sec-label">Perilaku Konsumen</div>
+    <div class="g2">
+
+      <!-- Budget -->
+      <div class="card">
+        <div class="card-head">Anggaran Per Porsi Camilan</div>
+        <div class="hbars">
+          <div class="hbar">
+            <div class="hbar-lbl">Rp 10.000–15.000</div>
+            <div class="hbar-track"><div class="hbar-fill" style="width:100%"></div></div>
+            <div class="hbar-val">32</div>
+          </div>
+          <div class="hbar">
+            <div class="hbar-lbl">Rp 16.000–25.000</div>
+            <div class="hbar-track"><div class="hbar-fill" style="width:38%"></div></div>
+            <div class="hbar-val">12</div>
+          </div>
+          <div class="hbar">
+            <div class="hbar-lbl">&gt; Rp 25.000</div>
+            <div class="hbar-track"><div class="hbar-fill" style="width:34%"></div></div>
+            <div class="hbar-val">11</div>
+          </div>
+          <div class="hbar">
+            <div class="hbar-lbl">&lt; Rp 10.000</div>
+            <div class="hbar-track"><div class="hbar-fill" style="width:6%"></div></div>
+            <div class="hbar-val">2</div>
+          </div>
+        </div>
+        <div class="insight">
+          <strong>Insight:</strong> 56% responden berbudget Rp 10.000–15.000 — rentang harga Rp 12.000–15.000 adalah sweet spot UBIEZZ.
+        </div>
+      </div>
+
+      <!-- Taste preference -->
+      <div class="card">
+        <div class="card-head">Preferensi Rasa Isian</div>
+        <div class="donut-wrap">
+          <canvas id="tasteChart" width="110" height="110" style="max-width:110px;flex-shrink:0"></canvas>
+          <div class="donut-legend">
+            <div class="leg-row">
+              <div class="leg-dot" style="background:#E8940A"></div>
+              <span class="leg-name">Manis</span>
+              <span class="leg-pct">47% (27)</span>
+            </div>
+            <div class="leg-row">
+              <div class="leg-dot" style="background:#C0720A"></div>
+              <span class="leg-name">Kombinasi</span>
+              <span class="leg-pct">26% (15)</span>
+            </div>
+            <div class="leg-row">
+              <div class="leg-dot" style="background:#7A3E0A"></div>
+              <span class="leg-name">Gurih / Pedas</span>
+              <span class="leg-pct">26% (15)</span>
+            </div>
+          </div>
+        </div>
+        <div class="insight">
+          <strong>Insight:</strong> Hampir separuh responden memilih rasa manis — validasi kuat untuk varian signature UBIEZZ. Kombinasi rasa juga menjanjikan (26%).
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 6. Hesitation reasons -->
+  <section>
+    <div class="card">
+      <div class="card-head">Alasan Utama Ragu Membeli Produk Camilan Baru</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+        <div class="hbars">
+          <div class="hbar" style="grid-template-columns:160px 1fr 38px">
+            <div class="hbar-lbl">Kualitas &amp; kebersihan</div>
+            <div class="hbar-track"><div class="hbar-fill" style="width:100%"></div></div>
+            <div class="hbar-val">25</div>
+          </div>
+          <div class="hbar">
+            <div class="hbar-lbl">Harga</div>
+            <div class="hbar-track"><div class="hbar-fill" style="width:80%"></div></div>
+            <div class="hbar-val">20</div>
+          </div>
+          <div class="hbar">
+            <div class="hbar-lbl">Visual / tampilan</div>
+            <div class="hbar-track"><div class="hbar-fill" style="width:32%"></div></div>
+            <div class="hbar-val">8</div>
+          </div>
+          <div class="hbar">
+            <div class="hbar-lbl">Lokasi tidak strategis</div>
+            <div class="hbar-track"><div class="hbar-fill" style="width:16%"></div></div>
+            <div class="hbar-val">4</div>
+          </div>
+        </div>
+        <div>
+          <canvas id="hesitChart" height="180"></canvas>
+        </div>
+      </div>
+      <div class="insight">
+        <strong>Prioritas:</strong> Kualitas &amp; kebersihan adalah hambatan terbesar (44%). Komunikasi higienitas proses produksi dan sertifikasi akan langsung meningkatkan kepercayaan konsumen. Harga (35%) mendukung posisi sweet-spot Rp 12.000–15.000.
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. Conclusion -->
+  <section>
+    <div class="card">
+      <div class="card-head">Kesimpulan &amp; Rekomendasi</div>
+      <p class="concl-body">
+        Dari 57 responden, UBIEZZ meraih skor validasi BMC rata-rata <strong>4.28 / 5.00</strong> — masuk kategori <strong>Baik</strong> dan menunjukkan model bisnis yang solid. Elemen terkuat adalah <em>Customer Relationships</em> (4.63) dan <em>Key Resources</em> (4.53), mencerminkan kepercayaan terhadap kualitas produk dan interaksi layanan. Elemen <em>Customer Segments</em> (3.77) menjadi catatan — definisi target pasar perlu diperjelas.
+      </p>
+      <div class="hbars" style="max-width:520px">
+        <div class="hbar">
+          <div class="hbar-lbl" style="color:var(--fg);font-weight:500">Cust. Relationships</div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:92.6%;background:var(--green)"></div></div>
+          <div class="hbar-val">4.63</div>
+        </div>
+        <div class="hbar">
+          <div class="hbar-lbl" style="color:var(--fg);font-weight:500">Key Resources</div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:90.6%;background:var(--green)"></div></div>
+          <div class="hbar-val">4.53</div>
+        </div>
+        <div class="hbar">
+          <div class="hbar-lbl" style="color:var(--fg);font-weight:500">Channels</div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:90.2%;background:var(--green)"></div></div>
+          <div class="hbar-val">4.51</div>
+        </div>
+        <div class="hbar">
+          <div class="hbar-lbl" style="color:var(--fg);font-weight:500">Value Propositions</div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:85.8%"></div></div>
+          <div class="hbar-val">4.29</div>
+        </div>
+        <div class="hbar">
+          <div class="hbar-lbl" style="color:var(--fg);font-weight:500">Revenue Streams</div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:80.8%"></div></div>
+          <div class="hbar-val">4.04</div>
+        </div>
+        <div class="hbar">
+          <div class="hbar-lbl" style="color:var(--warn);font-weight:500">Customer Segments</div>
+          <div class="hbar-track"><div class="hbar-fill" style="width:75.4%;background:var(--warn)"></div></div>
+          <div class="hbar-val" style="color:var(--warn)">3.77</div>
+        </div>
+      </div>
+      <div class="footnote" style="margin-top:18px">
+        <strong>Rekomendasi:</strong>
+        · Perkuat komunikasi higienitas &amp; kualitas produk
+        · Pertahankan harga di rentang Rp 12.000–15.000
+        · Optimalkan saluran digital/online (60% pengguna aktif)
+        · Eksplorasi varian kombinasi rasa selain manis
+        · Perjelas segmentasi pelanggan &amp; unique selling proposition
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div class="footer">
+  Laporan Validasi BMC · UBIEZZ – Produk Inovasi Berbasis Ubi · IPB University Sekolah Bisnis · n = 57 responden · September 2026
+</div>
+
+<script>
+(function () {
+  /* ── theme detection ─────────────────────────────────────── */
+  function isDark() {
+    const t = document.documentElement.getAttribute('data-theme');
+    if (t === 'dark') return true;
+    if (t === 'light') return false;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+  const dark = isDark();
+  const FG   = dark ? '#F5EDDA' : '#1C1208';
+  const FG2  = dark ? '#9E7E4E' : '#7A6040';
+  const GRID = dark ? '#2C2010' : '#F3EAD8';
+  const AMB  = dark ? '#FBBF24' : '#E8940A';
+  const AMB2 = dark ? '#F59E0B' : '#C0720A';
+  const AMB3 = dark ? '#D97706' : '#7A3E0A';
+
+  Chart.defaults.color = FG2;
+  Chart.defaults.font.family = "'DM Sans', system-ui, sans-serif";
+
+  /* ── Q per-question bar chart ────────────────────────────── */
+  const qLabels = [
+    ['Q1', 'Segmen'],
+    ['Q2', 'Value P.'],
+    ['Q3', 'Value P.'],
+    ['Q4', 'Channel'],
+    ['Q5', 'Cust. Rel'],
+    ['Q6', 'Revenue'],
+    ['Q7', 'Revenue'],
+    ['Q8', 'Key Res.'],
+    ['Q9', 'Key Res.'],
+  ];
+  const qData = [3.77, 4.07, 4.51, 4.51, 4.63, 4.39, 3.96, 4.12, 4.53];
+  const qColors = qData.map(v =>
+    v >= 4.5 ? (dark ? '#34D399' : '#059669') :
+    v >= 4.0 ? AMB : AMB3
+  );
+
+  new Chart(document.getElementById('qChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: qLabels,
+      datasets: [{
+        data: qData,
+        backgroundColor: qColors,
+        borderRadius: 6,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: items => [
+              'Q1 — Customer Segments',
+              'Q2 — Value Propositions (rasa/varian)',
+              'Q3 — Value Propositions (nilai vs harga)',
+              'Q4 — Channels (akses penjualan)',
+              'Q5 — Customer Relationships (pelayanan)',
+              'Q6 — Revenue Streams (keterjangkauan)',
+              'Q7 — Revenue Streams (niat beli rutin)',
+              'Q8 — Key Resources (kualitas bahan)',
+              'Q9 — Key Resources (kemasan/tampilan)',
+            ][items[0].dataIndex],
+            label: i => ` Mean: ${i.raw.toFixed(2)} / 5.00`
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { color: FG2, font: { size: 11 } },
+          border: { display: false }
+        },
+        y: {
+          min: 0, max: 5,
+          grid: { color: GRID },
+          ticks: { color: FG2, stepSize: 1, font: { size: 11 } },
+          border: { display: false }
+        }
+      }
+    }
+  });
+
+  /* ── Gender donut ─────────────────────────────────────────── */
+  new Chart(document.getElementById('genderChart').getContext('2d'), {
+    type: 'doughnut',
+    data: {
+      datasets: [{
+        data: [36, 21],
+        backgroundColor: [AMB, AMB3],
+        borderWidth: 0,
+        hoverOffset: 4
+      }]
+    },
+    options: {
+      responsive: false,
+      cutout: '62%',
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: i => [' Perempuan: 36', ' Laki-laki: 21'][i.dataIndex] } }
+      }
+    }
+  });
+
+  /* ── Taste donut ──────────────────────────────────────────── */
+  new Chart(document.getElementById('tasteChart').getContext('2d'), {
+    type: 'doughnut',
+    data: {
+      datasets: [{
+        data: [27, 15, 15],
+        backgroundColor: [AMB, AMB2, AMB3],
+        borderWidth: 0,
+        hoverOffset: 4
+      }]
+    },
+    options: {
+      responsive: false,
+      cutout: '62%',
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: i => [' Manis: 27', ' Kombinasi: 15', ' Gurih/Pedas: 15'][i.dataIndex] } }
+      }
+    }
+  });
+
+  /* ── Hesitation polar/bar chart ───────────────────────────── */
+  new Chart(document.getElementById('hesitChart').getContext('2d'), {
+    type: 'polarArea',
+    data: {
+      labels: ['Kualitas/Kebersihan', 'Harga', 'Visual/Tampilan', 'Lokasi'],
+      datasets: [{
+        data: [25, 20, 8, 4],
+        backgroundColor: [
+          'rgba(232,148,10,0.80)',
+          'rgba(192,114,10,0.70)',
+          'rgba(122,62,10,0.60)',
+          'rgba(122,62,10,0.40)',
+        ],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { color: FG2, font: { size: 10 }, boxWidth: 10, padding: 8 }
+        },
+        tooltip: { callbacks: { label: i => ` ${i.raw} responden` } }
+      },
+      scales: {
+        r: {
+          grid: { color: GRID },
+          ticks: { display: false },
+          pointLabels: { display: false }
+        }
+      }
+    }
+  });
+})();
+</script>
